@@ -1,0 +1,87 @@
+/* Estilos específicos para el mapa */
+.map-building {
+  transition: all 0.2s ease;
+}
+
+.map-building:hover {
+  opacity: 0.9;
+  filter: brightness(1.1);
+}
+
+.map-container {
+  touch-action: pan-y pinch-zoom;
+}
+
+.map-building-label {
+  user-select: none;
+  pointer-events: none;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Transiciones suaves para zoom y pan */
+.map-transition {
+  transition: transform 0.2s ease;
+}
+
+.map-no-transition {
+  transition: none;
+}
+
+/* Estados de arrastre */
+.map-dragging {
+  cursor: grabbing;
+}
+
+.map-default {
+  cursor: grab;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .map-layout {
+    flex-direction: column;
+  }
+
+  .map-panel {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Animación de edificios seleccionados */
+@keyframes building-pulse {
+  0% {
+    stroke-width: 2;
+  }
+
+  50% {
+    stroke-width: 4;
+  }
+
+  100% {
+    stroke-width: 2;
+  }
+}
+
+.map-building-selected {
+  animation: building-pulse 1.5s ease-in-out infinite;
+}
+
+/* Mejoras de accesibilidad */
+.map-building:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Ocultar elementos SVG para screen readers cuando sea necesario */
+.map-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

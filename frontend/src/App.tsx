@@ -1,9 +1,17 @@
+import React from 'react'
+import { Routes, Route } from 'react-router-dom'
+import MapaPage from './pages/MapaPage'
+import './App.css'
+
 function App() {
   return (
-    <div className="text-3xl font-bold text-blue-600 p-6">
-      Tailwind funcionando 🎉
+    <div className="App">
+      <Routes>
+        <Route path="/" element={<MapaPage />} />
+        <Route path="/mapa" element={<MapaPage />} />
+      </Routes>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

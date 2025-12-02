@@ -1,10 +1,13 @@
-import CampusMap from "../components/CampusMap";
+import CampusMap from '../components/CampusMap/CampusMap';
+import Header from '../components/layout/Header';
 
 export default function MapaPage() {
   return (
-    <div className="w-full h-full p-4">
-      <h1 className="text-2xl font-bold mb-4">Mapa Interactivo</h1>
-      <CampusMap />
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <main className="container mx-auto px-4 py-8">
+        <CampusMap />
+      </main>
     </div>
   );
 }
