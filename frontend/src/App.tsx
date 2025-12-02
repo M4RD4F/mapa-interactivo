@@ -1,5 +1,7 @@
+import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import MapaPage from './pages/MapaPage'
+  
 
 function App() {
   return (

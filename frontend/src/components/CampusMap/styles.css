@@ -85,3 +85,20 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* Corregir el rectángulo de foco */
+.focus-visible\:stroke-blue-500:focus-visible {
+  stroke: #3b82f6 !important;
+  stroke-dasharray: 4 !important;
+  opacity: 1 !important;
+}
+
+/* Asegurar que el rectángulo de foco esté detrás del edificio */
+g[role="button"] > rect:last-child {
+  z-index: -1;
+}
+
+/* Mejorar la sombra */
+rect[aria-hidden="true"]:first-of-type {
+  filter: blur(1px);
+}

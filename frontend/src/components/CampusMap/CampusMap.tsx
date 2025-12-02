@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { MapPin } from 'lucide-react';
 import MapRenderer from './MapRenderer'; 
 import ControlsPanel from './ControlsPanel';
@@ -15,8 +15,11 @@ const CampusMap: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showEvents, setShowEvents] = useState(true);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const {
     viewport,
+    setViewport, // ✅ ESTA LÍNEA DEBE ESTAR AQUÍ
     isDragging,
     handleZoom,
     resetViewport,
@@ -36,20 +39,56 @@ const CampusMap: React.FC = () => {
   const filteredBuildings = getFilteredBuildings(BUILDINGS, searchTerm, selectedCategory);
   const statistics = getBuildingStatistics(BUILDINGS);
 
+  // Función para hacer zoom a un edificio
+  const zoomToBuilding = useCallback((building: any) => {
+    if (!containerRef.current) return;
+    
+    const container = containerRef.current;
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+    
+    // Coordenadas del centro del edificio
+    const buildingCenterX = building.x + building.width / 2;
+    const buildingCenterY = building.y + building.height / 2;
+    
+    // Nuevo nivel de zoom
+    const newScale = 2.0;
+    
+    // Calcular nueva posición para centrar el edificio
+    const newX = containerWidth / 2 - buildingCenterX * newScale;
+    const newY = containerHeight / 2 - buildingCenterY * newScale;
+    
+    // Actualizar el viewport
+    setViewport({
+      x: newX,
+      y: newY,
+      scale: newScale
+    });
+  }, [setViewport]); // ✅ setViewport en dependencias
+
   const handleBuildingClick = useCallback((building: any) => {
     selectBuilding(building);
-  }, [selectBuilding]);
+    zoomToBuilding(building);
+  }, [selectBuilding, zoomToBuilding]);
 
   const handleBuildingKeyDown = useCallback((e: React.KeyboardEvent, building: any) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       selectBuilding(building, e.currentTarget as HTMLElement);
+      zoomToBuilding(building);
     }
-  }, [selectBuilding]);
+  }, [selectBuilding, zoomToBuilding]);
 
   const handleNavigate = useCallback((buildingName: string) => {
     alert(`Navegando a ${buildingName}`);
   }, []);
+
+  // Resetear vista cuando se cierra el panel
+  useEffect(() => {
+    if (!selectedBuilding) {
+      resetViewport();
+    }
+  }, [selectedBuilding, resetViewport]);
 
   // Eventos de teclado globales
   useEffect(() => {
@@ -113,18 +152,20 @@ const CampusMap: React.FC = () => {
               />
             </div>
 
-            <MapRenderer
-              viewport={viewport}
-              isDragging={isDragging}
-              searchTerm={searchTerm}
-              selectedCategory={selectedCategory}
-              showEvents={showEvents}
-              selectedBuildingId={selectedBuilding?.id || null}
-              onBuildingClick={handleBuildingClick}
-              onBuildingKeyDown={handleBuildingKeyDown}
-              onMouseDown={handleMouseDown}
-              onTouchStart={handleTouchStart} // ¡CORREGIDO!
-            />
+            <div ref={containerRef}>
+              <MapRenderer
+                viewport={viewport}
+                isDragging={isDragging}
+                searchTerm={searchTerm}
+                selectedCategory={selectedCategory}
+                showEvents={showEvents}
+                selectedBuildingId={selectedBuilding?.id || null}
+                onBuildingClick={handleBuildingClick}
+                onBuildingKeyDown={handleBuildingKeyDown}
+                onMouseDown={handleMouseDown}
+                onTouchStart={handleTouchStart}
+              />
+            </div>
           </div>
 
           {/* Panel derecho - Información del edificio */}
