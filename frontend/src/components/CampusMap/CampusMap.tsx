@@ -19,7 +19,7 @@ const CampusMap: React.FC = () => {
 
   const {
     viewport,
-    setViewport, // ✅ ESTA LÍNEA DEBE ESTAR AQUÍ
+    setViewport, 
     isDragging,
     handleZoom,
     resetViewport,
@@ -64,7 +64,7 @@ const CampusMap: React.FC = () => {
       y: newY,
       scale: newScale
     });
-  }, [setViewport]); // ✅ setViewport en dependencias
+  }, [setViewport]);
 
   const handleBuildingClick = useCallback((building: any) => {
     selectBuilding(building);

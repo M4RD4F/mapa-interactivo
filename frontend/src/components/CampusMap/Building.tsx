@@ -75,8 +75,6 @@ const BuildingComponent: React.FC<BuildingProps> = ({
       onBlur={handleBlur}
     >
       
-      
-      
       {/* Edificio principal */}
       <rect
         x={building.x}
