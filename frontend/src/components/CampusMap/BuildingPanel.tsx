@@ -1,6 +1,9 @@
-import React from 'react';
+// src/components/CampusMap/BuildingPanel.tsx
+import React, { useEffect, useState } from 'react';
 import { Navigation, Calendar, Info, X } from 'lucide-react';
 import type { Building } from './types';
+import type { Actividad } from '../../utils/types';
+import { obtenerActividadesPorEdificio } from '../../utils/api';
 
 interface BuildingPanelProps {
   building: Building | null;
@@ -13,6 +16,35 @@ const BuildingPanel: React.FC<BuildingPanelProps> = ({
   onClose,
   onNavigate
 }) => {
+  const [actividades, setActividades] = useState<Actividad[]>([]);
+  const [cargandoActividades, setCargandoActividades] = useState(false);
+  const [errorActividades, setErrorActividades] = useState<string | null>(null);
+
+  // Cargar actividades del backend cuando cambia el edificio seleccionado
+  useEffect(() => {
+    if (!building || !building.idEdificioDb) {
+      setActividades([]);
+      setErrorActividades(null);
+      return;
+    }
+
+    const cargar = async () => {
+      try {
+        setCargandoActividades(true);
+        setErrorActividades(null);
+        const data = await obtenerActividadesPorEdificio(building.idEdificioDb!);
+        setActividades(data);
+      } catch (err) {
+        console.error(err);
+        setErrorActividades('No se pudieron cargar las actividades de este edificio');
+      } finally {
+        setCargandoActividades(false);
+      }
+    };
+
+    cargar();
+  }, [building?.idEdificioDb]);
+
   if (!building) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-center p-8">
@@ -23,7 +55,7 @@ const BuildingPanel: React.FC<BuildingPanelProps> = ({
           Selecciona un edificio
         </h3>
         <p className="text-gray-600 mb-6">
-          Haz clic en cualquier edificio del mapa para ver información detallada, eventos próximos y servicios disponibles.
+          Haz clic en cualquier edificio del mapa para ver información detallada, actividades con créditos y servicios disponibles.
         </p>
         <div className="space-y-2 text-sm text-gray-500">
           <p>📍 <strong>Edificios con eventos</strong> tienen un círculo rojo</p>
@@ -99,13 +131,66 @@ const BuildingPanel: React.FC<BuildingPanelProps> = ({
             </div>
           </div>
         )}
+
+        {/* 🔹 Actividades con créditos (desde la BD) */}
+        <div className="mb-6">
+          <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <Calendar size={16} />
+            Actividades con créditos en este edificio
+          </h3>
+
+          {cargandoActividades && (
+            <p className="text-sm text-gray-500">Cargando actividades…</p>
+          )}
+
+          {errorActividades && (
+            <p className="text-sm text-red-600">{errorActividades}</p>
+          )}
+
+          {!cargandoActividades && !errorActividades && actividades.length === 0 && building.idEdificioDb && (
+            <p className="text-sm text-gray-500">
+              No hay actividades registradas por ahora en este edificio.
+            </p>
+          )}
+
+          {!cargandoActividades && actividades.length > 0 && (
+            <div className="space-y-3">
+              {actividades.map((act) => (
+                <div
+                  key={act.id_actividad}
+                  className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg text-sm"
+                >
+                  <div className="font-medium text-emerald-800">
+                    {act.titulo}
+                  </div>
+                  <div className="text-emerald-700 mt-1">
+                    Créditos: <strong>{act.creditos}</strong>
+                  </div>
+                  <div className="text-emerald-700">
+                    {new Date(act.fecha_inicio).toLocaleString()}
+                  </div>
+                  {act.lugar && (
+                    <div className="text-emerald-700">
+                      📍 {act.lugar}
+                    </div>
+                  )}
+                  {act.nombre_docente && (
+                    <div className="text-emerald-700">
+                      👨‍🏫 {act.nombre_docente}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         
-        {/* Eventos próximos */}
+        {/* Eventos “de diseño” que ya tenías (puedes dejarlos como complemento) */}
         {building.hasUpcomingEvent && building.events && (
           <div className="mb-6">
             <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
               <Calendar size={16} />
-              Eventos próximos
+              Otros eventos del edificio
             </h3>
             <div className="space-y-3">
               {building.events.map((event, index) => (
@@ -147,3 +232,4 @@ const BuildingPanel: React.FC<BuildingPanelProps> = ({
 };
 
 export default BuildingPanel;
+

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Viewport } from './types';
+import type { Viewport, Building } from './types';   // 👈 añadimos Building
 import BuildingComponent from './Building';
 import { BUILDINGS } from './constants';
 import { getFilteredBuildings } from '../../utils/mapCalculations';
@@ -11,8 +11,8 @@ interface MapRendererProps {
   selectedCategory: string;
   showEvents: boolean;
   selectedBuildingId: string | null;
-  onBuildingClick: (building: any) => void;
-  onBuildingKeyDown: (e: React.KeyboardEvent, building: any) => void;
+  onBuildingClick: (building: Building) => void;  // 👈 tipado
+  onBuildingKeyDown: (e: React.KeyboardEvent, building: Building) => void; // 👈 tipado
   onMouseDown: (e: React.MouseEvent) => void;
   onTouchStart: (e: React.TouchEvent) => void;
 }
@@ -49,7 +49,6 @@ const MapRenderer: React.FC<MapRendererProps> = ({
       >
         {/* Definiciones para patrones y gradientes */}
         <defs>
-          {/* Patrón de grid sutil para los límites */}
           <pattern 
             id="boundaryGrid" 
             width="50" 
@@ -65,16 +64,14 @@ const MapRenderer: React.FC<MapRendererProps> = ({
             />
           </pattern>
           
-          {/* Gradiente para el borde de límite */}
           <linearGradient id="boundaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.1" />
             <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.3" />
           </linearGradient>
         </defs>
 
-        {/* 🎯 LÍMITE VISUAL DEL MAPA (área útil) */}
+        {/* Límite visual del mapa */}
         <g>
-          {/* Fondo del área del mapa */}
           <rect
             x="0"
             y="0"
@@ -82,8 +79,6 @@ const MapRenderer: React.FC<MapRendererProps> = ({
             height="540"
             fill="url(#boundaryGrid)"
           />
-          
-          {/* Borde del área del mapa */}
           <rect
             x="0"
             y="0"
@@ -96,8 +91,6 @@ const MapRenderer: React.FC<MapRendererProps> = ({
             opacity="0.5"
             style={{ pointerEvents: 'none' }}
           />
-          
-          {/* Esquinas decorativas */}
           <g opacity="0.4">
             <path d="M0,0 L30,0 M0,0 L0,30" stroke="#3b82f6" strokeWidth="3" />
             <path d="M900,0 L870,0 M900,0 L900,30" stroke="#3b82f6" strokeWidth="3" />
@@ -106,7 +99,7 @@ const MapRenderer: React.FC<MapRendererProps> = ({
           </g>
         </g>
 
-        {/* Caminos principales */}
+        {/* Caminos */}
         <g className="opacity-80">
           <path
             d="M0,220 L900,220 M0,260 L900,260 M300,0 L300,540 M340,0 L340,540"
@@ -122,47 +115,13 @@ const MapRenderer: React.FC<MapRendererProps> = ({
           />
         </g>
 
-        {/* Áreas verdes - Reducidas para no salirse del límite */}
+        {/* Áreas verdes */}
         <g>
-          <rect 
-            x="50" 
-            y="20" 
-            width="800" 
-            height="40" 
-            rx="20" 
-            fill="#22c55e" 
-            opacity="0.3" 
-          />
-          <rect 
-            x="20" 
-            y="450" 
-            width="860" 
-            height="70" 
-            rx="35" 
-            fill="#22c55e" 
-            opacity="0.3" 
-          />
-          <circle 
-            cx="150" 
-            cy="100" 
-            r="30" 
-            fill="#86efac" 
-            opacity="0.4" 
-          />
-          <circle 
-            cx="750" 
-            cy="150" 
-            r="25" 
-            fill="#86efac" 
-            opacity="0.4" 
-          />
-          <circle 
-            cx="400" 
-            cy="400" 
-            r="35" 
-            fill="#86efac" 
-            opacity="0.4" 
-          />
+          <rect x="50" y="20" width="800" height="40" rx="20" fill="#22c55e" opacity="0.3" />
+          <rect x="20" y="450" width="860" height="70" rx="35" fill="#22c55e" opacity="0.3" />
+          <circle cx="150" cy="100" r="30" fill="#86efac" opacity="0.4" />
+          <circle cx="750" cy="150" r="25" fill="#86efac" opacity="0.4" />
+          <circle cx="400" cy="400" r="35" fill="#86efac" opacity="0.4" />
         </g>
 
         {/* Edificios */}
@@ -179,7 +138,7 @@ const MapRenderer: React.FC<MapRendererProps> = ({
           ))}
         </g>
 
-        {/* Indicador de límite cuando se hace zoom out demasiado */}
+        {/* Indicador zoom-out extremo */}
         {viewport.scale < 0.7 && (
           <g>
             <rect
@@ -247,7 +206,7 @@ const MapRenderer: React.FC<MapRendererProps> = ({
         </g>
       </svg>
 
-      {/* Overlay de ayuda para límites (HTML) */}
+      {/* Overlay de ayuda de límites */}
       {viewport.scale > 1.5 && (
         <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg max-w-xs">
           <p className="text-sm text-gray-700">

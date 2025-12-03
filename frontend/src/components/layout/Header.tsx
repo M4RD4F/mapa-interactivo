@@ -1,14 +1,16 @@
+// frontend/src/components/Layout/Header.tsx
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MapPin, Building, Calendar, Mail, User, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   userRole: 'student' | 'professor' | null;
-  onLogin: (role: 'student' | 'professor' | null) => void; // ✅ Permite null
+  onLogin: (role: 'student' | 'professor' | null) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ userRole, onLogin }) => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     { path: '/', label: 'Inicio', icon: <MapPin size={20} /> },
@@ -17,10 +19,16 @@ const Header: React.FC<HeaderProps> = ({ userRole, onLogin }) => {
     { path: '/contacto', label: 'Contacto', icon: <Mail size={20} /> },
   ];
 
+  const handleLogout = () => {
+    onLogin(null);      // limpiamos rol
+    navigate('/');      // regresamos al inicio
+  };
+
   return (
     <nav className="bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
+          {/* Logo + nav */}
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-2">
               <MapPin className="text-blue-600" size={24} />
@@ -45,9 +53,11 @@ const Header: React.FC<HeaderProps> = ({ userRole, onLogin }) => {
             </div>
           </div>
 
+          {/* Zona derecha */}
           <div className="flex items-center gap-4">
             {userRole ? (
               <>
+                {/* Avatar + rol */}
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                     <User size={18} className="text-blue-600" />
@@ -56,7 +66,8 @@ const Header: React.FC<HeaderProps> = ({ userRole, onLogin }) => {
                     {userRole === 'professor' ? 'Profesor' : 'Estudiante'}
                   </span>
                 </div>
-                
+
+                {/* Panel Admin solo para profesor */}
                 {userRole === 'professor' && (
                   <Link
                     to="/admin"
@@ -65,9 +76,10 @@ const Header: React.FC<HeaderProps> = ({ userRole, onLogin }) => {
                     Panel Admin
                   </Link>
                 )}
-                
+
+                {/* Logout */}
                 <button
-                  onClick={() => onLogin(null)} // ✅ Ahora null es válido
+                  onClick={handleLogout}
                   className="p-2 text-gray-500 hover:text-gray-700"
                   title="Cerrar sesión"
                 >
@@ -76,18 +88,21 @@ const Header: React.FC<HeaderProps> = ({ userRole, onLogin }) => {
               </>
             ) : (
               <div className="flex gap-2">
+                {/* Modo estudiante “visual” */}
                 <button
                   onClick={() => onLogin('student')}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50"
                 >
                   Estudiante
                 </button>
-                <button
-                  onClick={() => onLogin('professor')}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+
+                {/* Login docente */}
+                <Link
+                  to="/login-docente"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center"
                 >
                   Profesor
-                </button>
+                </Link>
               </div>
             )}
           </div>
@@ -98,3 +113,4 @@ const Header: React.FC<HeaderProps> = ({ userRole, onLogin }) => {
 };
 
 export default Header;
+

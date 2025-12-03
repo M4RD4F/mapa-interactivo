@@ -1,8 +1,13 @@
 // src/components/CampusMap/types.ts
-// Asegúrate de que tenga ESTA estructura exacta:
 
-export type Building = {    // <-- export ES OBLIGATORIO
+export type Building = {
+  // ID lógico del mapa (ej. 'library', 'lab-a')
   id: string;
+
+  // ID en la base de datos (tabla `edificios.id_edificio`)
+  // Será opcional por si algún edificio aún no existe en la BD
+  idEdificioDb?: number;
+
   name: string;
   x: number;
   y: number;

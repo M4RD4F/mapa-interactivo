@@ -1,16 +1,17 @@
 import type { Building, Category, Viewport } from './types'; 
 
 export const CATEGORIES: Category[] = [
-  { id: "all", label: "Todos", color: "#6b7280", icon: "Grid" },
-  { id: "academic", label: "Académico", color: "#3b82f6", icon: "BookOpen" },
-  { id: "services", label: "Servicios", color: "#ef4444", icon: "Coffee" },
-  { id: "sports", label: "Deportes", color: "#f59e0b", icon: "Dumbbell" },
-  { id: "parking", label: "Estacionamiento", color: "#64748b", icon: "ParkingCircle" }
+  { id: "all",        label: "Todos",         color: "#6b7280", icon: "Grid" },
+  { id: "academic",   label: "Académico",     color: "#3b82f6", icon: "BookOpen" },
+  { id: "services",   label: "Servicios",     color: "#ef4444", icon: "Coffee" },
+  { id: "sports",     label: "Deportes",      color: "#f59e0b", icon: "Dumbbell" },
+  { id: "parking",    label: "Estacionamiento", color: "#64748b", icon: "ParkingCircle" }
 ];
 
 export const BUILDINGS: Building[] = [
   {
     id: "library",
+    idEdificioDb: 1, // Biblioteca Central en la BD
     name: "Biblioteca Central",
     x: 60,
     y: 60,
@@ -22,13 +23,14 @@ export const BUILDINGS: Building[] = [
     hasUpcomingEvent: true,
     events: [
       { title: "Taller de Investigación", time: "15:00", location: "Sala A" },
-      { title: "Club de Lectura", time: "17:00", location: "Sala B" }
+      { title: "Club de Lectura",        time: "17:00", location: "Sala B" }
     ],
     occupancy: 75,
     facilities: ["Wifi", "Impresión", "Préstamo", "Estudio 24/7"]
   },
   {
     id: "cafeteria",
+    idEdificioDb: 3, // Comedor en la BD
     name: "Comedor Principal",
     x: 320,
     y: 60,
@@ -42,6 +44,7 @@ export const BUILDINGS: Building[] = [
   },
   {
     id: "computers",
+    idEdificioDb: 2, // Centro de Cómputo en la BD
     name: "Centro de Cómputo",
     x: 520,
     y: 60,
@@ -56,6 +59,7 @@ export const BUILDINGS: Building[] = [
   },
   {
     id: "aulas-a",
+    idEdificioDb: 5, // Edificio A en la BD
     name: "Edificio A",
     x: 60,
     y: 220,
@@ -68,6 +72,7 @@ export const BUILDINGS: Building[] = [
   },
   {
     id: "aulas-b",
+    // sin idEdificioDb aún -> todavía no está en la tabla edificios
     name: "Edificio B",
     x: 340,
     y: 220,
@@ -82,6 +87,7 @@ export const BUILDINGS: Building[] = [
   },
   {
     id: "aulas-c",
+    // sin idEdificioDb aún
     name: "Edificio C",
     x: 640,
     y: 220,
@@ -94,6 +100,7 @@ export const BUILDINGS: Building[] = [
   },
   {
     id: "deportes",
+    idEdificioDb: 4, // Complejo Deportivo en la BD
     name: "Complejo Deportivo",
     x: 260,
     y: 370,
@@ -108,6 +115,7 @@ export const BUILDINGS: Building[] = [
   },
   {
     id: "estacionamiento",
+    // sin idEdificioDb aún
     name: "Estacionamiento",
     x: 20,
     y: 370,

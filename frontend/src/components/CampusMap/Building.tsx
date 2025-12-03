@@ -1,27 +1,12 @@
 import React, { useCallback } from 'react';
-
-type BuildingType = {
-  id: string;
-  name: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  fill: string;
-  description: string;
-  hasUpcomingEvent?: boolean;
-  events?: { title: string; time: string; location: string }[];
-  occupancy?: number;
-  facilities?: string[];
-  category?: string;
-};
+import type { Building } from './types';  // 👈 usamos el tipo global
 
 interface BuildingProps {
-  building: BuildingType;
+  building: Building;
   isSelected: boolean;
   showEvents: boolean;
-  onClick: (building: BuildingType) => void;
-  onKeyDown: (e: React.KeyboardEvent, building: BuildingType) => void;
+  onClick: (building: Building) => void;
+  onKeyDown: (e: React.KeyboardEvent, building: Building) => void;
   onFocus?: () => void;
   onBlur?: () => void;
 }
@@ -54,7 +39,6 @@ const BuildingComponent: React.FC<BuildingProps> = ({
   const hasEvents = building.hasUpcomingEvent && showEvents;
   const fontSize = Math.max(10, Math.min(14, building.width / 12));
   
-  // Generar IDs únicos para ARIA
   const descriptionId = `building-desc-${building.id}`;
   const labelId = `building-label-${building.id}`;
 
@@ -74,7 +58,6 @@ const BuildingComponent: React.FC<BuildingProps> = ({
       onFocus={handleFocus}
       onBlur={handleBlur}
     >
-      
       {/* Edificio principal */}
       <rect
         x={building.x}
@@ -171,7 +154,7 @@ const BuildingComponent: React.FC<BuildingProps> = ({
         aria-hidden="true"
       />
       
-      {/* Indicador visual de foco - CORREGIDO */}
+      {/* Indicador visual de foco */}
       <rect
         x={building.x - 4}
         y={building.y - 4}

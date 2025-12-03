@@ -1,3 +1,4 @@
+// src/components/CampusMap/CampusMap.tsx
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { MapPin } from 'lucide-react';
 import MapRenderer from './MapRenderer'; 
@@ -8,6 +9,7 @@ import { BUILDINGS, INITIAL_VIEWPORT } from './constants';
 import { useMapNavigation } from '../../hooks/useMapNavigation';
 import { useBuildingSelection } from '../../hooks/useBuildingSelection';
 import { getFilteredBuildings, getBuildingStatistics } from '../../utils/mapCalculations';
+import type { Building } from './types';   // 👈 NUEVO
 import './styles.css';
 
 const CampusMap: React.FC = () => {
@@ -40,7 +42,7 @@ const CampusMap: React.FC = () => {
   const statistics = getBuildingStatistics(BUILDINGS);
 
   // Función para hacer zoom a un edificio
-  const zoomToBuilding = useCallback((building: any) => {
+  const zoomToBuilding = useCallback((building: Building) => {
     if (!containerRef.current) return;
     
     const container = containerRef.current;
@@ -82,14 +84,12 @@ const CampusMap: React.FC = () => {
     
     // Asegurar que no nos salgamos de los límites
     if (targetScale > 1) {
-      // Cuando hacemos zoom, limitar el desplazamiento
       const maxOffsetX = mapWidth * targetScale - containerWidth;
       const maxOffsetY = mapHeight * targetScale - containerHeight;
       
       newX = Math.max(-maxOffsetX, Math.min(0, newX));
       newY = Math.max(-maxOffsetY, Math.min(0, newY));
     } else {
-      // Si estamos en zoom 1x o menos, centrar el mapa
       newX = (containerWidth - mapWidth * targetScale) / 2;
       newY = (containerHeight - mapHeight * targetScale) / 2;
     }
@@ -101,12 +101,12 @@ const CampusMap: React.FC = () => {
     });
   }, [setViewport]);
 
-  const handleBuildingClick = useCallback((building: any) => {
+  const handleBuildingClick = useCallback((building: Building) => {
     selectBuilding(building);
     zoomToBuilding(building);
   }, [selectBuilding, zoomToBuilding]);
 
-  const handleBuildingKeyDown = useCallback((e: React.KeyboardEvent, building: any) => {
+  const handleBuildingKeyDown = useCallback((e: React.KeyboardEvent, building: Building) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       selectBuilding(building, e.currentTarget as HTMLElement);
@@ -118,14 +118,12 @@ const CampusMap: React.FC = () => {
     alert(`Navegando a ${buildingName}`);
   }, []);
 
-  // Resetear vista cuando se cierra el panel
   useEffect(() => {
     if (!selectedBuilding) {
       resetViewport();
     }
   }, [selectedBuilding, resetViewport]);
 
-  // Eventos de teclado globales
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && selectedBuilding) {
