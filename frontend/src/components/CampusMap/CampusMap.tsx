@@ -47,22 +47,57 @@ const CampusMap: React.FC = () => {
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
     
-    // Coordenadas del centro del edificio
-    const buildingCenterX = building.x + building.width / 2;
-    const buildingCenterY = building.y + building.height / 2;
+    // Área objetivo: edificio + margen de 80px
+    const targetArea = {
+      left: Math.max(0, building.x - 80),
+      top: Math.max(0, building.y - 80),
+      right: Math.min(900, building.x + building.width + 80),
+      bottom: Math.min(540, building.y + building.height + 80)
+    };
     
-    // Nuevo nivel de zoom
-    const newScale = 2.0;
+    const targetWidth = targetArea.right - targetArea.left;
+    const targetHeight = targetArea.bottom - targetArea.top;
     
-    // Calcular nueva posición para centrar el edificio
-    const newX = containerWidth / 2 - buildingCenterX * newScale;
-    const newY = containerHeight / 2 - buildingCenterY * newScale;
+    // Calcular escala para que el área objetivo ocupe 70% del contenedor
+    const scaleX = (containerWidth * 0.7) / targetWidth;
+    const scaleY = (containerHeight * 0.7) / targetHeight;
     
-    // Actualizar el viewport
+    // Usar la escala más pequeña para asegurar que todo quepa
+    let targetScale = Math.min(scaleX, scaleY);
+    
+    // Limitar el zoom entre 1x y 2.5x
+    targetScale = Math.max(1, Math.min(2.5, targetScale));
+    
+    // Centro del área objetivo
+    const centerX = (targetArea.left + targetArea.right) / 2;
+    const centerY = (targetArea.top + targetArea.bottom) / 2;
+    
+    // Calcular posición para centrar
+    let newX = containerWidth / 2 - centerX * targetScale;
+    let newY = containerHeight / 2 - centerY * targetScale;
+    
+    // Límites del mapa
+    const mapWidth = 900;
+    const mapHeight = 540;
+    
+    // Asegurar que no nos salgamos de los límites
+    if (targetScale > 1) {
+      // Cuando hacemos zoom, limitar el desplazamiento
+      const maxOffsetX = mapWidth * targetScale - containerWidth;
+      const maxOffsetY = mapHeight * targetScale - containerHeight;
+      
+      newX = Math.max(-maxOffsetX, Math.min(0, newX));
+      newY = Math.max(-maxOffsetY, Math.min(0, newY));
+    } else {
+      // Si estamos en zoom 1x o menos, centrar el mapa
+      newX = (containerWidth - mapWidth * targetScale) / 2;
+      newY = (containerHeight - mapHeight * targetScale) / 2;
+    }
+    
     setViewport({
       x: newX,
       y: newY,
-      scale: newScale
+      scale: targetScale
     });
   }, [setViewport]);
 

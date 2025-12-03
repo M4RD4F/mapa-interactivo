@@ -1,0 +1,18 @@
+/* frontend/src/components/Layout/Layout.css */
+/* Estilos específicos para el layout */
+
+/* Mejoras de transición para enlaces */
+a {
+    transition: color 0.2s ease, background-color 0.2s ease;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .nav-items {
+      display: none;
+    }
+    
+    .mobile-menu {
+      display: block;
+    }
+  }
