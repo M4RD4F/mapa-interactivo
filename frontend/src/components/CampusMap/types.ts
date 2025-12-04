@@ -1,13 +1,7 @@
 // src/components/CampusMap/types.ts
 
 export type Building = {
-  // ID lógico del mapa (ej. 'library', 'lab-a')
   id: string;
-
-  // ID en la base de datos (tabla `edificios.id_edificio`)
-  // Será opcional por si algún edificio aún no existe en la BD
-  idEdificioDb?: number;
-
   name: string;
   x: number;
   y: number;
@@ -20,6 +14,9 @@ export type Building = {
   occupancy?: number;
   facilities?: string[];
   category?: string;
+
+  // 👇 ESTE campo enlaza con la tabla `edificios.id_edificio`
+  idEdificioDb?: number;
 };
 
 export type Viewport = {

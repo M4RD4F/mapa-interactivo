@@ -1,4 +1,3 @@
-// src/components/CampusMap/CampusMap.tsx
 // frontend/src/components/CampusMap/CampusMap.tsx
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { MapPin } from 'lucide-react';
@@ -15,6 +14,7 @@ import type { Building } from './types';
 import type { EdificioApi } from '../../utils/types';
 import './styles.css';
 
+// Mapea categoría de BD → categoría usada en el frontend / filtros
 const mapCategoriaFrontend = (cat: EdificioApi['categoria']): string => {
   switch (cat) {
     case 'academico':
@@ -30,6 +30,7 @@ const mapCategoriaFrontend = (cat: EdificioApi['categoria']): string => {
   }
 };
 
+// Color por categoría (para el rectángulo del edificio)
 const colorPorCategoria = (cat: EdificioApi['categoria']): string => {
   switch (cat) {
     case 'academico':
@@ -50,6 +51,7 @@ const CampusMap: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showEvents, setShowEvents] = useState(true);
 
+  // 🔹 Edificios que vienen de la BD
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [loadingBuildings, setLoadingBuildings] = useState(true);
   const [errorBuildings, setErrorBuildings] = useState<string | null>(null);
@@ -74,19 +76,20 @@ const CampusMap: React.FC = () => {
     deselectBuilding,
   } = useBuildingSelection();
 
-  // 🔹 Cargar edificios desde la BD
+  // 🔹 Cargar edificios desde la BD y mapear → Building
   useEffect(() => {
     const cargarEdificios = async () => {
       try {
         setLoadingBuildings(true);
         setErrorBuildings(null);
 
-        const data = await obtenerEdificiosMapa();
+        const data = await obtenerEdificiosMapa(); // EdificioApi[]
 
         const mapeados: Building[] = data
+          // Solo usamos los que tengan posición definida
           .filter((e) => e.pos_x !== null && e.pos_y !== null)
           .map((e) => ({
-            id: String(e.id_edificio),
+            id: String(e.id_edificio),              // id usado en el mapa
             name: e.nombre,
             x: e.pos_x ?? 0,
             y: e.pos_y ?? 0,
@@ -96,8 +99,8 @@ const CampusMap: React.FC = () => {
             description: e.descripcion ?? '',
             category: mapCategoriaFrontend(e.categoria),
             hasUpcomingEvent: false,
-            occupancy: undefined,
-            facilities: [],
+            // 👇 clave para ligar con actividades
+            idEdificioDb: e.id_edificio,
           }));
 
         setBuildings(mapeados);
@@ -112,10 +115,11 @@ const CampusMap: React.FC = () => {
     cargarEdificios();
   }, []);
 
+  // Filtros y estadísticas en base a lo que viene de la BD
   const filteredBuildings = getFilteredBuildings(buildings, searchTerm, selectedCategory);
   const statistics = getBuildingStatistics(buildings);
 
-  // Zoom a un edificio
+  // 🔍 Zoom a un edificio
   const zoomToBuilding = useCallback(
     (building: Building) => {
       if (!containerRef.current) return;
@@ -192,12 +196,14 @@ const CampusMap: React.FC = () => {
     alert(`Navegando a ${buildingName}`);
   }, []);
 
+  // Reset de vista al cerrar panel
   useEffect(() => {
     if (!selectedBuilding) {
       resetViewport();
     }
   }, [selectedBuilding, resetViewport]);
 
+  // Atajos de teclado (+, -, Esc)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && selectedBuilding) {
@@ -221,6 +227,7 @@ const CampusMap: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <header className="mb-6 md:mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <MapPin className="text-blue-600" size={32} />
@@ -237,12 +244,14 @@ const CampusMap: React.FC = () => {
         </header>
 
         <div className="flex flex-col lg:flex-row gap-6">
+          {/* Panel izquierdo - Tips */}
           <div className="lg:w-1/4">
             <div className="bg-white rounded-2xl shadow-xl p-6 h-full">
               <TipsPanel />
             </div>
           </div>
 
+          {/* Panel central - Controles + mapa */}
           <div className="lg:w-1/2">
             <div className="bg-white rounded-2xl shadow-xl p-6 mb-4">
               <ControlsPanel
@@ -280,9 +289,17 @@ const CampusMap: React.FC = () => {
                 onTouchStart={handleTouchStart}
                 buildings={filteredBuildings}
               />
+              {loadingBuildings && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="bg-white/80 rounded-lg px-4 py-2 text-sm text-gray-700 shadow">
+                    Cargando mapa del campus…
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
+          {/* Panel derecho - Detalle del edificio */}
           <div className="lg:w-1/4">
             <div className="bg-white rounded-2xl shadow-xl p-6 h-full">
               <BuildingPanel
@@ -294,6 +311,7 @@ const CampusMap: React.FC = () => {
           </div>
         </div>
 
+        {/* Footer con estadísticas */}
         <footer className="mt-8 pt-6 border-t border-gray-200">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>

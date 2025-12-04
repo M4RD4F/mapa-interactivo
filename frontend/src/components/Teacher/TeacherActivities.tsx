@@ -1,11 +1,11 @@
-// frontend/src/components/Teacher/TeacherActivities.tsx
 import React, { useEffect, useState } from 'react';
-import { Calendar, PlusCircle } from 'lucide-react';
-// 👇 ahora traemos también los edificios desde la API
+import { Calendar, PlusCircle, Trash2, Edit3, CheckCircle2 } from 'lucide-react';
 import type { Actividad, EdificioApi } from '../../utils/types';
 import {
   obtenerActividadesPorDocente,
   crearActividad,
+  actualizarActividad,
+  eliminarActividad,
   type NuevaActividadPayload,
   obtenerEdificiosMapa,
 } from '../../utils/api';
@@ -16,11 +16,14 @@ interface TeacherActivitiesProps {
 
 const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
   const [actividades, setActividades] = useState<Actividad[]>([]);
+  const [edificios, setEdificios] = useState<EdificioApi[]>([]);
+
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mensajeExito, setMensajeExito] = useState<string | null>(null);
 
-  // 👉 NUEVO: edificios que vienen de la BD
-  const [edificios, setEdificios] = useState<EdificioApi[]>([]);
+  // para modo edición
+  const [actividadEditando, setActividadEditando] = useState<Actividad | null>(null);
 
   // Formulario
   const [titulo, setTitulo] = useState('');
@@ -33,7 +36,24 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
   const [cupoMaximo, setCupoMaximo] = useState('');
   const [idEdificioSeleccionado, setIdEdificioSeleccionado] = useState<string>('');
 
-  // 🔹 Cargar actividades del docente
+  const limpiarForm = () => {
+    setTitulo('');
+    setDescripcion('');
+    setCreditos('1');
+    setFechaInicio('');
+    setFechaFin('');
+    setLugar('');
+    setCategoria('académica');
+    setCupoMaximo('');
+    setIdEdificioSeleccionado('');
+    setActividadEditando(null);
+  };
+
+  const mostrarMensajeExito = (texto: string) => {
+    setMensajeExito(texto);
+    setTimeout(() => setMensajeExito(null), 3000);
+  };
+
   const cargarActividades = async () => {
     try {
       setCargando(true);
@@ -48,14 +68,12 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
     }
   };
 
-  // 🔹 Cargar edificios desde la BD (los mismos que usa el mapa)
   const cargarEdificios = async () => {
     try {
       const data = await obtenerEdificiosMapa();
       setEdificios(data);
     } catch (e) {
       console.error('Error al cargar edificios para el docente', e);
-      // si quieres mostrar mensaje, podrías usar otro estado de error
     }
   };
 
@@ -88,23 +106,54 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
         id_docente: docenteId,
       };
 
-      await crearActividad(payload);
+      if (actividadEditando) {
+        // 🔁 ACTUALIZAR
+        await actualizarActividad(actividadEditando.id_actividad, payload);
+        mostrarMensajeExito('Actividad actualizada correctamente.');
+      } else {
+        // ➕ CREAR
+        await crearActividad(payload);
+        mostrarMensajeExito('Actividad guardada correctamente.');
+      }
 
-      // limpiar form
-      setTitulo('');
-      setDescripcion('');
-      setCreditos('1');
-      setFechaInicio('');
-      setFechaFin('');
-      setLugar('');
-      setCategoria('académica');
-      setCupoMaximo('');
-      setIdEdificioSeleccionado('');
-
+      limpiarForm();
       await cargarActividades();
     } catch (e) {
       console.error(e);
-      setError('No se pudo crear la actividad');
+      setError('No se pudo guardar la actividad');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const handleEditar = (act: Actividad) => {
+    setActividadEditando(act);
+    setTitulo(act.titulo);
+    setDescripcion(act.descripcion);
+    setCreditos(String(act.creditos));
+    setLugar(act.lugar || '');
+    setCategoria(act.categoria || 'académica');
+    setCupoMaximo(act.cupo_maximo ? String(act.cupo_maximo) : '');
+    setFechaInicio(act.fecha_inicio ? act.fecha_inicio.slice(0, 16) : '');
+    setFechaFin(act.fecha_fin ? act.fecha_fin.slice(0, 16) : '');
+    // asegúrate de que tu SELECT de actividades incluya a.id_edificio
+    // @ts-ignore
+    setIdEdificioSeleccionado(act.id_edificio ? String(act.id_edificio) : '');
+  };
+
+  const handleEliminar = async (act: Actividad) => {
+    const ok = window.confirm(`¿Seguro que deseas eliminar "${act.titulo}"?`);
+    if (!ok) return;
+
+    try {
+      setCargando(true);
+      setError(null);
+      await eliminarActividad(act.id_actividad);
+      mostrarMensajeExito('Actividad eliminada correctamente.');
+      await cargarActividades();
+    } catch (e) {
+      console.error(e);
+      setError('No se pudo eliminar la actividad');
     } finally {
       setCargando(false);
     }
@@ -125,12 +174,36 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
           </div>
         </header>
 
+        {/* Mensajes globales */}
+        {mensajeExito && (
+          <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-lg text-sm">
+            <CheckCircle2 size={18} />
+            <span>{mensajeExito}</span>
+          </div>
+        )}
+        {error && (
+          <div className="bg-red-50 text-red-700 border border-red-200 px-4 py-2 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Formulario */}
         <section className="bg-white rounded-2xl shadow-xl p-6">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4 flex items-center gap-2">
-            <PlusCircle className="text-blue-600" />
-            Nueva actividad
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
+              <PlusCircle className="text-blue-600" />
+              {actividadEditando ? 'Editar actividad' : 'Nueva actividad'}
+            </h2>
+            {actividadEditando && (
+              <button
+                type="button"
+                onClick={limpiarForm}
+                className="text-xs text-slate-500 underline"
+              >
+                Cancelar edición
+              </button>
+            )}
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
@@ -263,19 +336,17 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-red-600">
-                {error}
-              </p>
-            )}
-
             <div className="flex justify-end">
               <button
                 type="submit"
                 disabled={cargando}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-60"
               >
-                {cargando ? 'Guardando…' : 'Guardar actividad'}
+                {cargando
+                  ? 'Guardando…'
+                  : actividadEditando
+                  ? 'Actualizar actividad'
+                  : 'Guardar actividad'}
               </button>
             </div>
           </form>
@@ -302,7 +373,7 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
               {actividades.map(act => (
                 <div
                   key={act.id_actividad}
-                  className="border border-slate-200 rounded-lg p-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2 text-sm"
+                  className="border border-slate-200 rounded-lg p-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-sm"
                 >
                   <div>
                     <div className="font-semibold text-slate-900">
@@ -318,8 +389,27 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
                       {new Date(act.fecha_inicio).toLocaleString()}
                     </div>
                   </div>
-                  <div className="text-xs text-slate-500">
-                    Cupo: {act.cupo_maximo ?? 'N/A'}
+
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-500">
+                      Cupo: {act.cupo_maximo ?? 'N/A'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleEditar(act)}
+                      className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-slate-300 text-slate-700 hover:bg-slate-50"
+                    >
+                      <Edit3 size={14} />
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleEliminar(act)}
+                      className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-red-200 text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 size={14} />
+                      Eliminar
+                    </button>
                   </div>
                 </div>
               ))}
@@ -332,4 +422,5 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
 };
 
 export default TeacherActivities;
+
 

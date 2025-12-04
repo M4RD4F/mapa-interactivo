@@ -83,3 +83,29 @@ export async function obtenerEdificiosMapa(): Promise<EdificioApi[]> {
   }
   return res.json();
 }
+
+export async function actualizarActividad(
+  idActividad: number,
+  payload: NuevaActividadPayload
+): Promise<void> {
+  const res = await fetch(`${API_URL}/actividades/${idActividad}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error('Error al actualizar actividad');
+  }
+}
+
+export async function eliminarActividad(idActividad: number): Promise<void> {
+  const res = await fetch(`${API_URL}/actividades/${idActividad}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    throw new Error('Error al eliminar actividad');
+  }
+}
+

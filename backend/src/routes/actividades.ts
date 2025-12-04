@@ -161,43 +161,11 @@ router.post('/', async (req, res) => {
     res.status(500).json({ error: 'Error al crear la actividad' });
   }
 });
-// 🔹 ACTIVIDADES POR DOCENTE
-router.get('/docente/:id_docente', async (req, res) => {
+
+// 👉 ACTUALIZAR ACTIVIDAD
+router.put('/:id_actividad', async (req, res) => {
   try {
-    const { id_docente } = req.params;
-
-    const [rows] = await pool.query(
-      `SELECT a.id_actividad,
-              a.titulo,
-              a.descripcion,
-              a.creditos,
-              a.fecha_inicio,
-              a.fecha_fin,
-              a.lugar,
-              a.categoria,
-              a.cupo_maximo,
-              e.id_edificio,
-              e.nombre  AS nombre_edificio,
-              u.id_usuario AS id_docente,
-              u.nombre AS nombre_docente
-       FROM actividades a
-       LEFT JOIN edificios e ON a.id_edificio = e.id_edificio
-       JOIN usuarios u ON a.id_docente = u.id_usuario
-       WHERE a.id_docente = ?
-       ORDER BY a.fecha_inicio DESC`,
-      [id_docente]
-    );
-
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Error al obtener actividades del docente' });
-  }
-});
-
-// 🔹 CREAR NUEVA ACTIVIDAD
-router.post('/', async (req, res) => {
-  try {
+    const { id_actividad } = req.params;
     const {
       titulo,
       descripcion,
@@ -211,55 +179,68 @@ router.post('/', async (req, res) => {
       id_docente,
     } = req.body;
 
-    if (!titulo || !descripcion || !creditos || !id_edificio || !id_docente) {
-      return res.status(400).json({ error: 'Faltan datos obligatorios' });
-    }
-
-    const [result]: any = await pool.query(
-      `INSERT INTO actividades 
-       (titulo, descripcion, creditos, fecha_inicio, fecha_fin, lugar, categoria, cupo_maximo, id_edificio, id_docente)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    const [result] = await pool.query(
+      `
+      UPDATE actividades
+      SET
+        titulo = ?,
+        descripcion = ?,
+        creditos = ?,
+        fecha_inicio = ?,
+        fecha_fin = ?,
+        lugar = ?,
+        categoria = ?,
+        cupo_maximo = ?,
+        id_edificio = ?,
+        id_docente = ?
+      WHERE id_actividad = ?
+      `,
       [
         titulo,
         descripcion,
         creditos,
-        fecha_inicio || new Date(),
-        fecha_fin || null,
-        lugar || null,
-        categoria || null,
-        cupo_maximo ?? null,
+        fecha_inicio,
+        fecha_fin,
+        lugar,
+        categoria,
+        cupo_maximo,
         id_edificio,
         id_docente,
+        id_actividad,
       ]
     );
 
-    const insertId = result.insertId;
+    // @ts-ignore
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Actividad no encontrada' });
+    }
 
-    const [rows] = await pool.query<any[]>(
-      `SELECT a.id_actividad,
-              a.titulo,
-              a.descripcion,
-              a.creditos,
-              a.fecha_inicio,
-              a.fecha_fin,
-              a.lugar,
-              a.categoria,
-              a.cupo_maximo,
-              e.id_edificio,
-              e.nombre  AS nombre_edificio,
-              u.id_usuario AS id_docente,
-              u.nombre AS nombre_docente
-       FROM actividades a
-       LEFT JOIN edificios e ON a.id_edificio = e.id_edificio
-       JOIN usuarios u ON a.id_docente = u.id_usuario
-       WHERE a.id_actividad = ?`,
-      [insertId]
-    );
-
-    res.status(201).json(rows[0]);
+    res.json({ ok: true, mensaje: 'Actividad actualizada' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error al crear la actividad' });
+    res.status(500).json({ error: 'Error al actualizar la actividad' });
+  }
+});
+
+// 👉 ELIMINAR ACTIVIDAD
+router.delete('/:id_actividad', async (req, res) => {
+  try {
+    const { id_actividad } = req.params;
+
+    const [result] = await pool.query(
+      'DELETE FROM actividades WHERE id_actividad = ?',
+      [id_actividad]
+    );
+
+    // @ts-ignore
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Actividad no encontrada' });
+    }
+
+    res.json({ ok: true, mensaje: 'Actividad eliminada' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al eliminar la actividad' });
   }
 });
 
