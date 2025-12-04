@@ -13,24 +13,27 @@ import './App.css';
 function App() {
   const [userRole, setUserRole] = useState<'student' | 'professor' | null>(null);
   const [docenteId, setDocenteId] = useState<number | null>(null);
+  const [docenteNombre, setDocenteNombre] = useState<string | null>(null);
 
   // Cambia rol desde el header (y limpia profe si sale)
   const handleLogin = (role: 'student' | 'professor' | null) => {
     setUserRole(role);
     if (role !== 'professor') {
       setDocenteId(null);
+      setDocenteNombre(null);
     }
   };
 
   // Login exitoso del profe
-  const handleLoginDocenteSuccess = (id: number) => {
+  const handleLoginDocenteSuccess = (id: number, nombre: string) => {
     setUserRole('professor');
     setDocenteId(id);
+    setDocenteNombre(nombre);
   };
 
   return (
     <BrowserRouter>
-      <Layout userRole={userRole} onLogin={handleLogin}>
+      <Layout userRole={userRole} onLogin={handleLogin} userName={docenteNombre}>
         <Routes>
           <Route path="/" element={<CampusMap />} />
           <Route path="/mapa" element={<CampusMap />} />

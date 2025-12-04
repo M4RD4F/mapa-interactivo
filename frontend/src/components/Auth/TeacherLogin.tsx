@@ -4,7 +4,7 @@ import { Lock, Mail } from 'lucide-react';
 import { loginDocente } from '../../utils/api';
 
 interface TeacherLoginProps {
-  onLoginSuccess: (idDocente: number) => void;
+  onLoginSuccess: (idDocente: number, nombre: string) => void;
 }
 
 const TeacherLogin: React.FC<TeacherLoginProps> = ({ onLoginSuccess }) => {
@@ -24,7 +24,7 @@ const TeacherLogin: React.FC<TeacherLoginProps> = ({ onLoginSuccess }) => {
       const res = await loginDocente(email, password);
 
       // Avisamos al App que el profe inició sesión
-      onLoginSuccess(res.id_docente);
+      onLoginSuccess(res.id_docente, res.nombre);
 
       // Mandamos al panel del profe
       navigate('/admin');

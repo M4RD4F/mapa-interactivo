@@ -1,20 +1,20 @@
+// src/components/CampusMap/MapRenderer.tsx
 import React from 'react';
-import type { Viewport, Building } from './types';   // 👈 añadimos Building
+import type { Viewport, Building } from './types';
 import BuildingComponent from './Building';
-import { BUILDINGS } from './constants';
-import { getFilteredBuildings } from '../../utils/mapCalculations';
 
 interface MapRendererProps {
   viewport: Viewport;
   isDragging: boolean;
-  searchTerm: string;
-  selectedCategory: string;
+  searchTerm: string;                // (no se usa, pero lo dejo por si luego quieres tooltips, etc.)
+  selectedCategory: string;          // idem
   showEvents: boolean;
   selectedBuildingId: string | null;
-  onBuildingClick: (building: Building) => void;  // 👈 tipado
-  onBuildingKeyDown: (e: React.KeyboardEvent, building: Building) => void; // 👈 tipado
+  onBuildingClick: (building: Building) => void;
+  onBuildingKeyDown: (e: React.KeyboardEvent, building: Building) => void;
   onMouseDown: (e: React.MouseEvent) => void;
   onTouchStart: (e: React.TouchEvent) => void;
+  buildings: Building[];            // 👈 edificios que ya vienen filtrados desde CampusMap
 }
 
 const MapRenderer: React.FC<MapRendererProps> = ({
@@ -27,10 +27,9 @@ const MapRenderer: React.FC<MapRendererProps> = ({
   onBuildingClick,
   onBuildingKeyDown,
   onMouseDown,
-  onTouchStart
+  onTouchStart,
+  buildings,                          // 👈 se nos había olvidado destructurarlo
 }) => {
-  const filteredBuildings = getFilteredBuildings(BUILDINGS, searchTerm, selectedCategory);
-
   return (
     <div
       className="relative bg-gradient-to-br from-emerald-50 to-cyan-50 rounded-2xl shadow-xl overflow-hidden border-2 border-white map-container"
@@ -44,26 +43,26 @@ const MapRenderer: React.FC<MapRendererProps> = ({
         style={{
           transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale})`,
           transformOrigin: '0 0',
-          transition: isDragging ? 'none' : 'transform 0.2s ease'
+          transition: isDragging ? 'none' : 'transform 0.2s ease',
         }}
       >
         {/* Definiciones para patrones y gradientes */}
         <defs>
-          <pattern 
-            id="boundaryGrid" 
-            width="50" 
-            height="50" 
+          <pattern
+            id="boundaryGrid"
+            width="50"
+            height="50"
             patternUnits="userSpaceOnUse"
           >
-            <path 
-              d="M 50 0 L 0 0 0 50" 
-              fill="none" 
-              stroke="#e5e7eb" 
-              strokeWidth="1" 
+            <path
+              d="M 50 0 L 0 0 0 50"
+              fill="none"
+              stroke="#e5e7eb"
+              strokeWidth="1"
               opacity="0.3"
             />
           </pattern>
-          
+
           <linearGradient id="boundaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.1" />
             <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.3" />
@@ -72,13 +71,7 @@ const MapRenderer: React.FC<MapRendererProps> = ({
 
         {/* Límite visual del mapa */}
         <g>
-          <rect
-            x="0"
-            y="0"
-            width="900"
-            height="540"
-            fill="url(#boundaryGrid)"
-          />
+          <rect x="0" y="0" width="900" height="540" fill="url(#boundaryGrid)" />
           <rect
             x="0"
             y="0"
@@ -126,7 +119,7 @@ const MapRenderer: React.FC<MapRendererProps> = ({
 
         {/* Edificios */}
         <g id="buildings">
-          {filteredBuildings.map(building => (
+          {buildings.map((building) => (
             <BuildingComponent
               key={building.id}
               building={building}
@@ -222,3 +215,4 @@ const MapRenderer: React.FC<MapRendererProps> = ({
 };
 
 export default MapRenderer;
+

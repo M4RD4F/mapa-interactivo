@@ -18,3 +18,12 @@ export interface Actividad {
   id_docente?: number;
   nombre_docente?: string;
 }
+
+export type EdificioApi = {
+  id_edificio: number;
+  nombre: string;
+  descripcion: string | null;
+  categoria: 'academico' | 'servicios' | 'deportivo' | 'estacionamiento' | 'otro';
+  pos_x: number | null;
+  pos_y: number | null;
+};

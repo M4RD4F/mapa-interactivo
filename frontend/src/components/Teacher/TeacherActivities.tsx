@@ -1,15 +1,15 @@
+// frontend/src/components/Teacher/TeacherActivities.tsx
 import React, { useEffect, useState } from 'react';
 import { Calendar, PlusCircle } from 'lucide-react';
-import { BUILDINGS } from '../CampusMap/constants';
-import type { Actividad } from '../../utils/types';
+// 👇 ahora traemos también los edificios desde la API
+import type { Actividad, EdificioApi } from '../../utils/types';
 import {
   obtenerActividadesPorDocente,
   crearActividad,
   type NuevaActividadPayload,
+  obtenerEdificiosMapa,
 } from '../../utils/api';
 
-// 🔧 Por ahora, ID del docente "logueado" hardcodeado.
-// Puedes cambiarlo según tu tabla `usuarios`.
 interface TeacherActivitiesProps {
   docenteId: number;
 }
@@ -18,6 +18,9 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
   const [actividades, setActividades] = useState<Actividad[]>([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 👉 NUEVO: edificios que vienen de la BD
+  const [edificios, setEdificios] = useState<EdificioApi[]>([]);
 
   // Formulario
   const [titulo, setTitulo] = useState('');
@@ -30,9 +33,7 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
   const [cupoMaximo, setCupoMaximo] = useState('');
   const [idEdificioSeleccionado, setIdEdificioSeleccionado] = useState<string>('');
 
-  // Solo edificios que tienen idEdificioDb
-  const edificiosConDb = BUILDINGS.filter(b => b.idEdificioDb);
-
+  // 🔹 Cargar actividades del docente
   const cargarActividades = async () => {
     try {
       setCargando(true);
@@ -47,9 +48,21 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
     }
   };
 
+  // 🔹 Cargar edificios desde la BD (los mismos que usa el mapa)
+  const cargarEdificios = async () => {
+    try {
+      const data = await obtenerEdificiosMapa();
+      setEdificios(data);
+    } catch (e) {
+      console.error('Error al cargar edificios para el docente', e);
+      // si quieres mostrar mensaje, podrías usar otro estado de error
+    }
+  };
+
   useEffect(() => {
     cargarActividades();
-  }, []);
+    cargarEdificios();
+  }, [docenteId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,9 +158,9 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
                   required
                 >
                   <option value="">Selecciona un edificio…</option>
-                  {edificiosConDb.map(b => (
-                    <option key={b.id} value={b.idEdificioDb}>
-                      {b.name}
+                  {edificios.map(e => (
+                    <option key={e.id_edificio} value={e.id_edificio}>
+                      {e.nombre}
                     </option>
                   ))}
                 </select>
@@ -319,3 +332,4 @@ const TeacherActivities: React.FC<TeacherActivitiesProps> = ({ docenteId }) => {
 };
 
 export default TeacherActivities;
+

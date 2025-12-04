@@ -1,5 +1,7 @@
 // frontend/src/utils/api.ts
-import type { Actividad } from './types';  // 👈 OJO: import type
+import type { Actividad, EdificioApi } from './types';  // 👈 OJO: import type
+import type { Building } from '../components/CampusMap/types';
+import { BUILDING_LAYOUT } from './buildingsLayout';
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -71,5 +73,13 @@ export async function loginDocente(
     throw new Error('Credenciales inválidas');
   }
 
+  return res.json();
+}
+
+export async function obtenerEdificiosMapa(): Promise<EdificioApi[]> {
+  const res = await fetch(`${API_URL}/edificios`);
+  if (!res.ok) {
+    throw new Error('Error al cargar edificios');
+  }
   return res.json();
 }

@@ -5,13 +5,14 @@ import Header from './Header';
 interface LayoutProps {
   userRole: 'student' | 'professor' | null;
   onLogin: (role: 'student' | 'professor' | null) => void;
+  userName?: string | null;
   children: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ userRole, onLogin, children }) => {
+const Layout: React.FC<LayoutProps> = ({ userRole, onLogin, userName, children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      <Header userRole={userRole} onLogin={onLogin} />
+      <Header userRole={userRole} onLogin={onLogin} userName={userName} />
       <main className="flex-1">
         {children}
       </main>
